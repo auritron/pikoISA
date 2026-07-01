@@ -1,3 +1,5 @@
+# Exceptions
+
 *pikoISA’s* specification lists exceptions that a CPU using this architecture must implement, with both the core instructions and the implemented Exceptions.
 
 ## List of Exceptions -

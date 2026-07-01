@@ -1,3 +1,5 @@
+# Registers
+
 **The list of 16 GPRs are as follows -**
 
 - `RSP` - Stack Pointer

@@ -1,3 +1,5 @@
+# Instructions
+
 Instructions are written as it is, pseudo instructions are written with a `$` prefixed and resolved by the assembler.
 
 (**Note: If an encoded instruction does not match the format of any of the implemented instructions, it raises an** `InvalidOpcode` **exception.)**
