@@ -35,7 +35,7 @@ Instructions are written as it is, pseudo instructions are written with a `$` pr
         ```nasm
         ; For when the second operand is an Immediate
         setlhi Rdst (#IMM & 0xFFFF)
-        setrhi Rdst (#IMM >> 16 & 0xFFFF)
+        setuhi Rdst (#IMM >> 16 & 0xFFFF)
         ; Above expressions are pseudocode representations resolved by the assembler
         ```
         
@@ -154,7 +154,7 @@ Instructions are written as it is, pseudo instructions are written with a `$` pr
         sload RTMP SPC
         add RTMP RTMP #4
         sub RSP RSP #4    ;Push to stack
-        send RTMP &RSP
+        send4b RTMP &RSP
         goto &Rlbl
         ```
         
@@ -168,7 +168,7 @@ Instructions are written as it is, pseudo instructions are written with a `$` pr
         sload RTMP SPC
         add RTMP RTMP #4
         sub RSP RSP #4    ;Push to stack
-        send RTMP &RSP
+        send4b RTMP &RSP
         jmp #IMM &Rlbl
         ```
         
@@ -178,7 +178,7 @@ Instructions are written as it is, pseudo instructions are written with a `$` pr
         
         ```nasm
         ; $ret
-        load RTMP &RSP
+        load4b RTMP &RSP
         add RSP RSP #4
         ssend RTMP SPC
         ```
@@ -194,7 +194,7 @@ Instructions are written as it is, pseudo instructions are written with a `$` pr
         ```nasm
         ; $push Rsrc
         sub RSP RSP #4
-        send Rsrc &RSP
+        send4b Rsrc &RSP
         ```
         
 - **`$pop`** - `$pop Rdst`
@@ -204,7 +204,7 @@ Instructions are written as it is, pseudo instructions are written with a `$` pr
         
         ```nasm
         ; $pop Rdst
-        load Rdst &RSP
+        load4b Rdst &RSP
         add RSP RSP #4
         ```
         
@@ -342,29 +342,29 @@ Instructions are written as it is, pseudo instructions are written with a `$` pr
 - **`$jov`** — `$jov [@LABEL | &Rlbl]`
     - Jumps to the given address if the overflow flag is set.
     - Implemented as - `$jmp #3 &Rlbl`
-- **`$jgt`** — `$jgt [@LABEL | &Rlbl]`
-    - Jumps to the given address if both the zero flag is not set and the negative flag equals the overflow flag (signed greater than).
-    - Implemented as - `$jmp #4 &Rlbl`
-- **`$jge`** — `$jge [@LABEL | &Rlbl]`
-    - Jumps to the given address if the negative flag equals the overflow flag (signed greater than or equal to).
-    - Implemented as - `$jmp #5 &Rlbl`
 - **`$jlt`** — `$jlt [@LABEL | &Rlbl]`
     - Jumps to the given address if the negative flag does not equal the overflow flag (signed less than).
-    - Implemented as - `$jmp #6 &Rlbl`
+    - Implemented as - `$jmp #4 &Rlbl`
 - **`$jle`** — `$jle [@LABEL | &Rlbl]`
     - Jumps to the given address if either the zero flag is set or the negative flag does not equal the overflow flag (signed less than or equal to).
+    - Implemented as - `$jmp #5 &Rlbl`
+- **`$jgt`** — `$jgt [@LABEL | &Rlbl]`
+    - Jumps to the given address if both the zero flag is not set and the negative flag equals the overflow flag (signed greater than).
+    - Implemented as - `$jmp #6 &Rlbl`
+- **`$jge`** — `$jge [@LABEL | &Rlbl]`
+    - Jumps to the given address if the negative flag equals the overflow flag (signed greater than or equal to).
     - Implemented as - `$jmp #7 &Rlbl`
-- **`$jgtu`** — `$jgtu [@LABEL | &Rlbl]`
-    - Jumps to the given address if both the zero flag is not set and the carry flag is set (unsigned greater than / no borrow).
-    - Implemented as - `$jmp #8 &Rlbl`
-- **`$jgeu`** — `$jgeu [@LABEL | &Rlbl]`
-    - Jumps to the given address if the carry flag is set (unsigned greater than or equal to / no borrow).
-    - Implemented as - `$jmp #9 &Rlbl`
 - **`$jltu`** — `$jltu [@LABEL | &Rlbl]`
     - Jumps to the given address if the carry flag is not set (unsigned less than / borrow occurred).
-    - Implemented as - `$jmp #10 &Rlbl`
+    - Implemented as - `$jmp #8 &Rlbl`
 - **`$jleu`** — `$jleu [@LABEL | &Rlbl]`
     - Jumps to the given address if either the zero flag is set or the carry flag is not set (unsigned less than or equal to / borrow occurred).
+    - Implemented as - `$jmp #9 &Rlbl`
+- **`$jgtu`** — `$jgtu [@LABEL | &Rlbl]`
+    - Jumps to the given address if both the zero flag is not set and the carry flag is set (unsigned greater than / no borrow).
+    - Implemented as - `$jmp #10 &Rlbl`
+- **`$jgeu`** — `$jgeu [@LABEL | &Rlbl]`
+    - Jumps to the given address if the carry flag is set (unsigned greater than or equal to / no borrow).
     - Implemented as - `$jmp #11 &Rlbl`
 
 **System -**
