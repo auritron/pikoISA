@@ -367,14 +367,82 @@ Instructions are written as it is, pseudo instructions are written with a `$` pr
     - Jumps to the given address if the carry flag is set (unsigned greater than or equal to / no borrow).
     - Implemented as - `$jmp #11 &Rlbl`
 
-**System -**
-
-- **`sys`** - `sys`
-- **`sysret`**  - `sysret`
-
 ### Floating Point Instructions (pkF) -
+
+Dependencies - *Core*
 
 **Memory and Registers -**
 
-- **`fload`** - `floadb Fdst, &Rsrc`
+- **`fload`** - `fload Fdst, &Rsrc`
+    - Loads 32-bit Floating Point number from [&Rsrc..&Rsrc + 3] to Fdst
+    - Raises `UnalignedAccessException` if misaligned
 - **`fsend`** - `fsend Fsrc, &Rdst`
+    - Sends 32-bit Floating Point number from Fsrc to [&Rdst.&Rdst + 3]
+    - Raises `UnalignedAccessException` if misaligned
+- **`ftrset`** - `ftr Rdst Fsrc`
+    - Loads raw value from the FPR Fsrc to GPR Rdst
+- **`rtfset`** - `rtf Rsrc Fdst`
+    - Loads raw value from the GPR Rsrc to FPR Fdst
+- **`ftrcvt`** - `ftr_cvt Rdst Fsrc`
+    - Converts value from float in FPR Fsrc to int in GPR Rdst
+    - If fails (eg. if Fsrc is NaN, Inf or -Inf), raises `InvalidOperationException`
+    - If Fsrc represents a value outside the range of a 32-bit signed integer (i.e. greater than 2^31-1 or less than -2^31), raises `InvalidOperationException`
+- **`rtfcvt`** - `rtfcvt Fdst Rsrc`
+    - Loads raw value from int in GPR Rdst to float in FPR Fsrc
+    - Signed conversion
+- **`rtfcvtu`** - `rtfcvtu Fdst Rsrc`
+    - Loads raw value from int in GPR Rdst to float in FPR Fsrc
+    - Unsigned conversion
+    - Sets `SFPSR.NX` if the integer value can't be represented exactly in 32-bit float (which happens for large unsigned values above 2^24)
+
+**Arithmetic and Logic -**
+
+- **`fadd`** - `fadd Fdst Fsrc1 Fsrc2`
+    - Adds the values of Fsrc1 and Fsrc2 and stores the result in Fdst
+    - Sets the `NV` flag in `SFPSR` if operation is invalid
+    - Sets `NX` flag if the addition result is not exact
+- **`fsub`** - `fsub Fdst Fsrc1 Fsrc2`
+    - Subtracts the value of Fsrc2 from Fsrc1 and stores the result in Fdst
+    - Sets the `NV` flag if operation is invalid
+    - Sets `NX` flag if the subtraction result is not exact
+- **`fmul`**  - `fmul Fdst Fsrc1 Fsrc2`
+    - Multiplies the value of Fsrc1 and Fsrc2 and stores the product in Fdst
+    - Sets Overflow Flag (OF) in `SFPSR` to 1 if overflow occurs, and the result is set to Inf or -Inf
+    - Sets the `NV` flag if operation is invalid
+    - Sets `NX` flag if the multiplication result is not exact
+- **`fdiv`**  - `fdiv Fdst Fsrc1 Fsrc2`
+    - Divides the value of Fsrc1 and Fsrc2 and stores the quotient in Fdst
+    - Sets the `DZ` flag in `SFPSR` if the the second operand is 0
+    - Sets the `NV` flag if operation is invalid
+    - Sets `NX` flag if the division result is not exact
+- **`ftrunc`** - `ftrunc Fdst Fsrc`
+    - Truncates the decimal bits of Fsrc, stores the value in Fdst
+    - Not to be conflated with `ftrcvt` which converts the value to integer entirely
+- **`ffloor` -** `ffloor Fdst Fsrc`
+    - Finds the floor value of Fsrc and stores it in Fdst
+    - Calculates floor value and moves towards negative infinity
+- **`fceil` -** `fceil Fdst Fsrc`
+    - Finds the ceiling value of Fsrc and stores it in Fdst
+    - Calculates ceiling value and moves towards positive infinity
+- **`fneg`** - `fneg Fdst Fsrc`
+    - Negates the value of Fsrc and stores it in Fdst
+    - Implemented by flipping the sign bit (MSB)
+    - Works for NaN and ±Inf
+- **`fabs`** - `fabs Fdst Fsrc`
+    - Calculates the absolute value of Fsrc and stores it in Fdst
+    - Implemented by setting the sign bit to zero (MSB)
+    - Works for NaN and ±Inf
+
+**Comparison and branching -**
+
+- **`fcmp`**  - `fcmp Fx Fy`
+    - Compares the value of Fx and Fy with each other, sets the flag accordingly, similar to the `cmp` instruction.
+    - Sets the `NV` flag if operation is invalid
+    - Sets flags in `SFLAGS` accordingly -
+    
+    | Condition | Z | N | C | V |
+    | --- | --- | --- | --- | --- |
+    | Fx > Fy | 0 | 0 | 1 | 0 |
+    | Fx < Fy | 0 | 1 | 0 | 0 |
+    | Fx == Fy | 1 | 0 | 0 | 0 |
+    | Undefined (NaN) | 0 | 0 | 0 | 1 |
